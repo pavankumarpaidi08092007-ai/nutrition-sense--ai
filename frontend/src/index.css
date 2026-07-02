@@ -1,0 +1,302 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+  @apply bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-white/20 dark:border-white/5;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+}
+
+.glass-panel-heavy {
+  @apply bg-white/90 dark:bg-slate-950/80 backdrop-blur-lg border border-white/30 dark:border-white/10;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+}
+
+.glass-card {
+  @apply bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/20 dark:border-slate-800/50 rounded-2xl transition-all duration-300;
+}
+
+.glass-card:hover {
+  @apply border-emerald-500/30 dark:border-emerald-500/20 bg-white/80 dark:bg-slate-900/60 shadow-lg -translate-y-0.5;
+}
+
+/* Glowing text and buttons */
+.glow-green {
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.glow-btn-green {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+.glow-btn-green:hover {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-nutri {
+  @apply bg-gradient-to-br from-emerald-50 via-teal-50 to-sky-50 dark:from-slate-950 dark:via-emerald-950/10 dark:to-sky-950/10;
+}
+
+.bg-gradient-premium {
+  @apply bg-gradient-to-r from-emerald-500 via-teal-600 to-sky-600;
+}
+
+.text-gradient-premium {
+  @apply bg-gradient-to-r from-emerald-500 via-teal-600 to-sky-500 bg-clip-text text-transparent;
+}
+
+/* Animation presets */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.02); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fluid bottle animation elements */
+.water-wave {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background: rgba(14, 165, 233, 0.85);
+  border-radius: 38%;
+  animation: wave 12s linear infinite;
+  transform: translate(-25%, 0);
+}
+
+.water-wave-back {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background: rgba(56, 189, 248, 0.5);
+  border-radius: 35%;
+  animation: wave 8s linear infinite;
+  transform: translate(-25%, 0);
+}
+
+@keyframes wave {
+  0% { transform: translate(-25%, 0) rotate(0deg); }
+  100% { transform: translate(-25%, -20%) rotate(360deg); }
+}
+
+/* Chatbot Specific CSS & Animations */
+@keyframes chatbot-fab-pulse-anim {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.chatbot-fab-pulse {
+  animation: chatbot-fab-pulse-anim 2s infinite;
+}
+
+@keyframes chatbot-typing-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.chatbot-typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #94a3b8;
+  border-radius: 50%;
+  display: inline-block;
+  animation: chatbot-typing-bounce 1s infinite ease-in-out;
+}
+
+.chatbot-typing-dot:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.chatbot-typing-dot:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+@keyframes chatbot-mic-pulse-anim {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.chatbot-mic-pulse {
+  animation: chatbot-mic-pulse-anim 1.5s infinite;
+}
+
+.chatbot-online-dot {
+  animation: pulse-slow 2s infinite;
+}
+
+/* Glassmorphism/modern styling for chatbot window */
+.chatbot-window {
+  @apply border border-slate-200/80 dark:border-slate-800/80;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+}
+
+.dark .chatbot-window {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+}
+
+.chatbot-header {
+  background: linear-gradient(135deg, #10b981 0%, #0d9488 50%, #0284c7 100%);
+}
+
+.chatbot-feed {
+  scrollbar-width: thin;
+}
+
+/* Chatbot Markdown Elements Styling */
+.chatbot-md-root {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.chatbot-md-p {
+  margin-bottom: 0.5rem;
+}
+
+.chatbot-md-p:last-child {
+  margin-bottom: 0;
+}
+
+.chatbot-md-h1 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-top: 0.75rem;
+  margin-bottom: 0.4rem;
+  color: inherit;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.2);
+}
+
+.chatbot-md-h2 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0.6rem;
+  margin-bottom: 0.3rem;
+  color: inherit;
+}
+
+.chatbot-md-ul {
+  list-style-type: disc;
+  padding-left: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.chatbot-md-ol {
+  list-style-type: decimal;
+  padding-left: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.chatbot-md-ol li, .chatbot-md-ul li {
+  margin-bottom: 0.25rem;
+}
+
+.chatbot-md-blockquote {
+  border-left: 3px solid #10b981;
+  padding-left: 0.5rem;
+  margin: 0.5rem 0;
+  font-style: italic;
+  background-color: rgba(16, 185, 129, 0.05);
+  border-radius: 0 4px 4px 0;
+}
+
+.chatbot-md-code {
+  font-family: monospace;
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.dark .chatbot-md-code {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.chatbot-md-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0.6rem 0;
+  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.3);
+}
+
+.chatbot-md-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.chatbot-md-table th {
+  background-color: rgba(16, 185, 129, 0.1);
+  padding: 0.35rem 0.5rem;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+}
+
+.chatbot-md-table td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+}
+
+/* Mobile chatbot optimizations */
+@media (max-width: 640px) {
+  .chatbot-window {
+    border-radius: 1rem;
+  }
+
+  .chatbot-feed {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chatbot-fab-pulse {
+    animation-duration: 2.5s;
+  }
+}
+
