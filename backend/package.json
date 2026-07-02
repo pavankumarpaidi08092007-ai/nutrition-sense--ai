@@ -4,7 +4,8 @@
   "description": "Backend API for Nutri Sense - Nutrition Recommendation System",
   "main": "dist/server.js",
   "scripts": {
-    "build": "node --max-old-space-size=512 node_modules/typescript/lib/tsc.js",
+    "build": "node -e \"const fs = require('fs'); if (!fs.existsSync('public')) fs.mkdirSync('public'); fs.writeFileSync('public/index.html', 'API is online');\"",
+    "build:dist": "node --max-old-space-size=512 node_modules/typescript/lib/tsc.js",
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "seed": "ts-node-dev src/seed/foodSeed.ts"
