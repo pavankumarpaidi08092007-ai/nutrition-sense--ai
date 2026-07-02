@@ -69,9 +69,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Connect DB & Start Server
 const startServer = async () => {
   await connectDB();
-  app.listen(PORT, () => {
-    console.log(`[NUTRI SENSE SERVER] running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
-  });
+  if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+      console.log(`[NUTRI SENSE SERVER] running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
+    });
+  }
 };
 
 startServer();
+
+export default app;
