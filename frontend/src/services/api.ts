@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Create Axios Client pointing to the proxied server
+// Create Axios Client pointing to the backend server
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: ((import.meta as any).env?.VITE_API_URL as string) || '/api',
   headers: {
     'Content-Type': 'application/json',
   },

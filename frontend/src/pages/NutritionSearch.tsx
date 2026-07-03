@@ -171,7 +171,7 @@ export const NutritionSearch: React.FC = () => {
                           onClick={async () => {
                             const currentFavs = user?.favorites || [];
                             const updatedFavs = isFav
-                              ? currentFavs.filter(f => f !== food.name)
+                              ? currentFavs.filter((f: string) => f !== food.name)
                               : [...currentFavs, food.name];
                             try {
                               await updateProfile({ favorites: updatedFavs });

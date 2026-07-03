@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "disableSourceOfProjectReferenceRedirect": true
+    "disableSourceOfProjectReferenceRedirect": false
   },
   "files": [],
   "references": [
