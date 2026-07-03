@@ -38,7 +38,7 @@ app.use('/api/', limiter);
 // Request parsing
 app.use(express.json());
 
-// Base Route
+// Base Route - returns API health status and active database connection
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to Nutri Sense API',
