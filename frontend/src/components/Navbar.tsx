@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Menu, X, Sun, Moon, LogOut, Activity, LayoutDashboard, Calendar, Search, ShieldAlert, Settings, Bell, Trash, Check } from 'lucide-react';
@@ -9,7 +9,13 @@ export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpenNotif, setIsOpenNotif] = useState(false);
 
@@ -253,7 +259,7 @@ export const Navbar: React.FC = () => {
                   <span className="max-w-[100px] truncate">{user.name}</span>
                 </Link>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/20 border border-transparent hover:border-rose-200/30 transition-all duration-200"
                 >
                   <LogOut className="w-4 h-4" />
@@ -318,7 +324,7 @@ export const Navbar: React.FC = () => {
                 </div>
                 <button
                   onClick={() => {
-                    logout();
+                    handleLogout();
                     setIsOpen(false);
                   }}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/20 transition-all border border-rose-100 dark:border-rose-950/40"
