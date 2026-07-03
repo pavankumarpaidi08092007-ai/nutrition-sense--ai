@@ -10,7 +10,7 @@ import { Footer } from './components/Footer';
 import { AIChatAssistant } from './components/AIChatAssistant';
 
 // Pages Import
-import { LandingPage } from './pages/LandingPage';
+// Pages Import
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
@@ -39,7 +39,6 @@ const AppContent: React.FC = () => {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Login />} />
-            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
