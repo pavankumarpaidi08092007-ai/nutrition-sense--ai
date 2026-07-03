@@ -2,9 +2,5 @@
   "compilerOptions": {
     "disableSourceOfProjectReferenceRedirect": false
   },
-  "files": [],
-  "references": [
-    { "path": "frontend" },
-    { "path": "backend" }
-  ]
+  "files": []
 }
