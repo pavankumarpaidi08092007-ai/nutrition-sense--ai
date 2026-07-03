@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export let isUsingMockDB = false;
+export let mongoError: string | null = null;
 
 export const connectDB = async (): Promise<boolean> => {
   const connString = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/nutrisense';
@@ -15,8 +16,10 @@ export const connectDB = async (): Promise<boolean> => {
     });
     console.log(`MongoDB Connected successfully: ${conn.connection.host}`);
     isUsingMockDB = false;
+    mongoError = null;
     return true;
   } catch (error: any) {
+    mongoError = error.message;
     console.error(`MongoDB Connection Error: ${error.message}`);
     console.log('------------------------------------------------------------');
     console.log('WARNING: Local MongoDB is not running or accessible.');

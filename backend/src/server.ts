@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import { connectDB, isUsingMockDB } from './config/db';
+import { connectDB, isUsingMockDB, mongoError } from './config/db';
 // Route imports
 import authRoutes from './routes/authRoutes';
 import foodRoutes from './routes/foodRoutes';
@@ -44,7 +44,8 @@ app.get('/', (req, res) => {
     message: 'Welcome to Nutri Sense API',
     status: 'online',
     version: '1.0.0',
-    database: isUsingMockDB ? 'MOCK_DATABASE' : 'MONGODB_ATLAS'
+    database: isUsingMockDB ? 'MOCK_DATABASE' : 'MONGODB_ATLAS',
+    dbError: mongoError
   });
 });
 
