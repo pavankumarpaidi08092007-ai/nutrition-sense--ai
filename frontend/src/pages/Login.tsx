@@ -12,7 +12,7 @@ export const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user && user.id !== 'guest') {
+    if (user) {
       navigate('/dashboard');
     }
   }, [user, navigate]);
@@ -137,7 +137,7 @@ export const Login: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-800/50 text-center flex flex-col gap-2">
+          <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-800/50 text-center">
             <span className="text-xs text-slate-500 dark:text-slate-400">
               Don't have an account?{' '}
               <Link
@@ -146,15 +146,6 @@ export const Login: React.FC = () => {
               >
                 Sign Up
               </Link>
-            </span>
-            <span className="text-xs text-slate-400">
-              Or{' '}
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="font-bold text-slate-600 hover:text-slate-800 dark:text-slate-350 dark:hover:text-white underline"
-              >
-                Explore as Guest
-              </button>
             </span>
           </div>
         </div>

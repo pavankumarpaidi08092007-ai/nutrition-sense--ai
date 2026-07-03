@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fetchUser = async () => {
       const storedToken = localStorage.getItem('token');
       if (!storedToken) {
-        setUser(createGuestUser());
+        setUser(null);
         setLoading(false);
         return;
       }
@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
-    setUser(createGuestUser());
+    setUser(null);
   };
 
   const updateProfile = async (profileData: Partial<UserType>): Promise<boolean> => {
