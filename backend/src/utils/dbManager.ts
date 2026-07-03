@@ -39,7 +39,7 @@ const initMemoryStoreFoods = () => {
 };
 
 // Call initialization
-setTimeout(initMemoryStoreFoods, 1000);
+initMemoryStoreFoods();
 
 // --- DB MANAGER ABSTRACT IMPLEMENTATIONS ---
 
