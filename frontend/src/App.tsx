@@ -38,7 +38,8 @@ const AppContent: React.FC = () => {
         <main className="flex-1 flex flex-col">
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<Login />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
