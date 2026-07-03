@@ -8,8 +8,18 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Load remembered credentials on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -25,6 +35,11 @@ export const Login: React.FC = () => {
     try {
       const success = await login(email, password);
       if (success) {
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
         navigate('/dashboard');
       }
     } catch (err: any) {
@@ -107,6 +122,8 @@ export const Login: React.FC = () => {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-slate-500 dark:text-slate-400">
