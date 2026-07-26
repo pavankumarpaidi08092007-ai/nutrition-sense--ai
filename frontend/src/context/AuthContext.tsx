@@ -181,7 +181,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error: any) {
         console.error('Failed to load current user details:', error);
-        if (!error.response || error.isApiOffline || error.message?.includes('Network Error') || error.code === 'ERR_NETWORK') {
+        const status = error.response?.status;
+        if (!error.response || error.isApiOffline || error.message?.includes('Network Error') || error.code === 'ERR_NETWORK' || status === 404 || status === 405 || status === 403 || status >= 500) {
           const storedUser = localStorage.getItem('nutrisense_current_user');
           if (storedUser) {
             try {
@@ -217,10 +218,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return false;
     } catch (error: any) {
-      const isOffline = !error.response || error.isApiOffline || error.message?.includes('Network Error') || error.code === 'ERR_NETWORK' || error.response?.status === 404;
+      const status = error.response?.status;
+      const isOffline = !error.response || error.isApiOffline || error.message?.includes('Network Error') || error.code === 'ERR_NETWORK' || status === 404 || status === 405 || status === 403 || status >= 500;
 
       if (isOffline) {
-        console.warn('Backend API unavailable. Authenticating locally via persistent storage.');
+        console.warn('Backend API unavailable or method not allowed on static host. Authenticating locally via persistent storage.');
         const cleanEmail = email.trim().toLowerCase();
         const users = getStoredUsers();
         const found = users.find(u => u.email.toLowerCase() === cleanEmail);
@@ -315,7 +317,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return false;
     } catch (error: any) {
-      const isOffline = !error.response || error.isApiOffline || error.message?.includes('Network Error') || error.code === 'ERR_NETWORK' || error.response?.status === 404;
+      const status = error.response?.status;
+      const isOffline = !error.response || error.isApiOffline || error.message?.includes('Network Error') || error.code === 'ERR_NETWORK' || status === 404 || status === 405 || status === 403 || status >= 500;
 
       if (isOffline) {
         console.warn('Backend API unavailable. Registering user locally via persistent storage.');
