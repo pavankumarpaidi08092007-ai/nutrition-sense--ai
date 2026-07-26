@@ -22,10 +22,17 @@ router.post('/register', async (req: any, res: Response) => {
       return res.status(400).json({ success: false, message: 'Please provide name, email and password' });
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+
+    if (password.length < 4) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 4 characters long' });
+    }
+
     // Check if user already exists
-    const userExists = await dbUsers.findOne({ email: email.toLowerCase() });
+    const userExists = await dbUsers.findOne({ email: cleanEmail });
     if (userExists) {
-      return res.status(400).json({ success: false, message: 'User already exists' });
+      return res.status(400).json({ success: false, message: 'An account with this email already exists. Please sign in instead.' });
     }
 
     // Hash password
@@ -34,39 +41,43 @@ router.post('/register', async (req: any, res: Response) => {
 
     // Create user with default profile parameters
     const user = await dbUsers.create({
-      name,
-      email: email.toLowerCase(),
+      name: cleanName,
+      email: cleanEmail,
       password: hashedPassword,
-      role: email.toLowerCase().includes('admin') ? 'admin' : 'user', // auto-grant admin if email contains 'admin'
+      role: cleanEmail.includes('admin') ? 'admin' : 'user', // auto-grant admin if email contains 'admin'
     });
+
+    const userId = user._id || user.id;
 
     res.status(201).json({
       success: true,
-      token: generateToken(user._id),
+      token: generateToken(userId),
       user: {
-        id: user._id,
+        id: userId,
         name: user.name,
         email: user.email,
-        role: user.role,
-        age: user.age,
-        gender: user.gender,
-        height: user.height,
-        weight: user.weight,
-        activityLevel: user.activityLevel,
-        goal: user.goal,
-        medicalConditions: user.medicalConditions,
-        allergies: user.allergies,
-        foodPreference: user.foodPreference,
-        cuisinePreference: user.cuisinePreference,
-        dailyWaterGoal: user.dailyWaterGoal,
-        sleepHours: user.sleepHours,
+        role: user.role || 'user',
+        age: user.age ?? 25,
+        gender: user.gender ?? 'Male',
+        height: user.height ?? 170,
+        weight: user.weight ?? 65,
+        activityLevel: user.activityLevel ?? 'Moderately Active',
+        goal: user.goal ?? 'Maintain Weight',
+        medicalConditions: user.medicalConditions ?? [],
+        allergies: user.allergies ?? [],
+        foodPreference: user.foodPreference ?? 'Veg',
+        cuisinePreference: user.cuisinePreference ?? 'All',
+        dailyWaterGoal: user.dailyWaterGoal ?? 3000,
+        sleepHours: user.sleepHours ?? 8,
         favorites: user.favorites || [],
-        notificationSettings: user.notificationSettings
+        notificationSettings: user.notificationSettings || {
+          breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
+        }
       }
     });
   } catch (error: any) {
     console.error('Registration Error:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message || 'Registration failed due to server error' });
   }
 });
 
@@ -80,43 +91,48 @@ router.post('/login', async (req: any, res: Response) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    const user = await dbUsers.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await dbUsers.findOne({ email: cleanEmail });
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({ success: false, message: 'Account not found with this email. Please check email or register.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({ success: false, message: 'Incorrect password. Please try again.' });
     }
+
+    const userId = user._id || user.id;
 
     res.json({
       success: true,
-      token: generateToken(user._id),
+      token: generateToken(userId),
       user: {
-        id: user._id,
+        id: userId,
         name: user.name,
         email: user.email,
-        role: user.role,
-        age: user.age,
-        gender: user.gender,
-        height: user.height,
-        weight: user.weight,
-        activityLevel: user.activityLevel,
-        goal: user.goal,
-        medicalConditions: user.medicalConditions,
-        allergies: user.allergies,
-        foodPreference: user.foodPreference,
-        cuisinePreference: user.cuisinePreference,
-        dailyWaterGoal: user.dailyWaterGoal,
-        sleepHours: user.sleepHours,
+        role: user.role || 'user',
+        age: user.age ?? 25,
+        gender: user.gender ?? 'Male',
+        height: user.height ?? 170,
+        weight: user.weight ?? 65,
+        activityLevel: user.activityLevel ?? 'Moderately Active',
+        goal: user.goal ?? 'Maintain Weight',
+        medicalConditions: user.medicalConditions ?? [],
+        allergies: user.allergies ?? [],
+        foodPreference: user.foodPreference ?? 'Veg',
+        cuisinePreference: user.cuisinePreference ?? 'All',
+        dailyWaterGoal: user.dailyWaterGoal ?? 3000,
+        sleepHours: user.sleepHours ?? 8,
         favorites: user.favorites || [],
-        notificationSettings: user.notificationSettings
+        notificationSettings: user.notificationSettings || {
+          breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
+        }
       }
     });
   } catch (error: any) {
     console.error('Login Error:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message || 'Login failed due to server error' });
   }
 });
 

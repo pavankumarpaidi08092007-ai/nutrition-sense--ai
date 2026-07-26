@@ -155,8 +155,19 @@ export const dbUsers = {
 
   create: async (data: any) => {
     if (isUsingMockDB) {
-      const newUser = {
-        _id: `mock_user_${Date.now()}`,
+      const defaultProfile = {
+        age: 25,
+        gender: 'Male',
+        height: 170,
+        weight: 65,
+        activityLevel: 'Moderately Active',
+        goal: 'Maintain Weight',
+        medicalConditions: [],
+        allergies: [],
+        foodPreference: 'Veg',
+        cuisinePreference: 'All',
+        dailyWaterGoal: 2500,
+        sleepHours: 8,
         favorites: [],
         notificationSettings: {
           breakfast: true,
@@ -166,6 +177,11 @@ export const dbUsers = {
           exercise: true,
           sleep: true
         },
+      };
+
+      const newUser = {
+        _id: `mock_user_${Date.now()}`,
+        ...defaultProfile,
         ...data,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -174,7 +190,7 @@ export const dbUsers = {
       
       // Seed default trackings for the mock user to make dashboard interesting
       dbWater.create({ userId: newUser._id, date: new Date().toISOString().split('T')[0], amount: 1500 });
-      dbWeight.create({ userId: newUser._id, date: new Date().toISOString().split('T')[0], weight: newUser.weight || 70, bmi: 24.2 });
+      dbWeight.create({ userId: newUser._id, date: new Date().toISOString().split('T')[0], weight: newUser.weight || 65, bmi: 22.5 });
       
       return newUser;
     }
