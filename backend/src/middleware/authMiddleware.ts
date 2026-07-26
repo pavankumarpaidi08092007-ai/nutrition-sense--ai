@@ -14,6 +14,34 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
       // Extract token
       token = req.headers.authorization.split(' ')[1];
 
+      // Support guest token
+      if (token === 'guest_token' || token.startsWith('guest_')) {
+        const guestUser = await dbUsers.findOne({ email: 'guest@nutrisense.com' });
+        req.user = guestUser || {
+          _id: 'guest',
+          name: 'Guest User',
+          email: 'guest@nutrisense.com',
+          role: 'user',
+          age: 30,
+          gender: 'Other',
+          height: 170,
+          weight: 70,
+          activityLevel: 'Moderately Active',
+          goal: 'Maintain Weight',
+          medicalConditions: [],
+          allergies: [],
+          foodPreference: 'Veg',
+          cuisinePreference: 'All',
+          dailyWaterGoal: 2500,
+          sleepHours: 7,
+          favorites: [],
+          notificationSettings: {
+            breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
+          }
+        };
+        return next();
+      }
+
       // Verify token
       const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_nutrisense_key_2026');
 
@@ -25,10 +53,9 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
       }
 
       req.user = user;
-      next();
+      return next();
     } catch (error) {
-      console.error('JWT Verification Error:', error);
-      res.status(401).json({ success: false, message: 'Not authorized, token invalid or expired' });
+      return res.status(401).json({ success: false, message: 'Not authorized, token invalid or expired' });
     }
   }
 
