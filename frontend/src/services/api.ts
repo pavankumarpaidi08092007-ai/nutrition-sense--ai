@@ -22,4 +22,22 @@ api.interceptors.request.use(
   }
 );
 
+// Detect non-JSON (HTML 404/SPA fallbacks) and mark as API offline
+api.interceptors.response.use(
+  (response) => {
+    if (typeof response.data === 'string' && response.data.trim().startsWith('<')) {
+      const err: any = new Error('API returned HTML instead of JSON (API Offline / Static deployment)');
+      err.isApiOffline = true;
+      return Promise.reject(err);
+    }
+    return response;
+  },
+  (error) => {
+    if (error.response && typeof error.response.data === 'string' && error.response.data.trim().startsWith('<')) {
+      error.isApiOffline = true;
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
