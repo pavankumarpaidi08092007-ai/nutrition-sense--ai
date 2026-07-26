@@ -319,7 +319,6 @@ export const Navbar: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-slate-800 dark:text-white">{user.name}</div>
-                    <div className="text-xs text-slate-500 truncate">{user.email}</div>
                   </div>
                 </div>
                 <button

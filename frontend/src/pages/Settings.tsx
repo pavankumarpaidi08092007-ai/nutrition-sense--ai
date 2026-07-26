@@ -160,7 +160,6 @@ export const Settings: React.FC = () => {
             <div className="grid grid-cols-2 gap-3 text-xs">
               {[
                 { label: 'Name', val: user.name },
-                { label: 'Email', val: user.email },
                 { label: 'Role', val: user.role === 'admin' ? '🔐 Administrator' : '👤 User' },
                 { label: 'Goal', val: user.goal },
                 { label: 'Food Preference', val: user.foodPreference },

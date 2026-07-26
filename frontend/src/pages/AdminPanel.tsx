@@ -251,7 +251,6 @@ export const AdminPanel: React.FC = () => {
                         <tr key={u.id}>
                           <td className="py-3.5 px-4">
                             <span className="font-bold text-slate-800 dark:text-white">{u.name}</span>
-                            <span className="block text-[10px] text-slate-450">{u.email}</span>
                           </td>
                           <td className="py-3.5 px-4 font-semibold text-emerald-600 dark:text-emerald-400">
                             {u.goal}
