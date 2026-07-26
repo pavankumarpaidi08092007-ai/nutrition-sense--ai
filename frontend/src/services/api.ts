@@ -36,6 +36,14 @@ api.interceptors.response.use(
     if (error.response && typeof error.response.data === 'string' && error.response.data.trim().startsWith('<')) {
       error.isApiOffline = true;
     }
+    // Clean up generic Axios 'Request failed' message
+    if (error.message && error.message.toLowerCase().includes('request failed')) {
+      if (error.response?.data?.message) {
+        error.message = error.response.data.message;
+      } else {
+        error.message = 'Unable to complete request. Please check your connection.';
+      }
+    }
     return Promise.reject(error);
   }
 );

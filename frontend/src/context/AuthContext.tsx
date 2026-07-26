@@ -291,7 +291,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      const msg = error.response?.data?.message || error.message || 'Login failed. Please check credentials.';
+      let msg = error.response?.data?.message;
+      if (!msg || typeof msg !== 'string' || msg.toLowerCase().includes('request failed')) {
+        msg = 'Invalid email or password. Please check your credentials.';
+      }
       throw new Error(msg);
     } finally {
       setLoading(false);
@@ -356,7 +359,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
 
-      const msg = error.response?.data?.message || error.message || 'Registration failed.';
+      let msg = error.response?.data?.message;
+      if (!msg || typeof msg !== 'string' || msg.toLowerCase().includes('request failed')) {
+        msg = 'Registration failed. Please check your details and try again.';
+      }
       throw new Error(msg);
     } finally {
       setLoading(false);
