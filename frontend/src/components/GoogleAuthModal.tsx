@@ -1,31 +1,63 @@
 import React, { useState } from 'react';
-import { X, UserPlus, Check, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, UserPlus, Check, ArrowRight, Search, Sparkles } from 'lucide-react';
 
-interface GoogleAccount {
+export interface GoogleAccount {
   name: string;
   email: string;
   avatarBg: string;
   initials: string;
+  roleTag: string;
+  goal: string;
 }
 
-const PRESET_ACCOUNTS: GoogleAccount[] = [
+export const PRESET_ACCOUNTS: GoogleAccount[] = [
   {
     name: 'Pavan Kumar Paidi',
     email: 'pavankumarpaidi08092007@gmail.com',
     avatarBg: 'bg-indigo-600',
     initials: 'PK',
+    roleTag: 'Account Owner',
+    goal: 'Maintain Weight',
   },
   {
     name: 'Rahul Sharma',
     email: 'rahul.health@gmail.com',
     avatarBg: 'bg-emerald-600',
     initials: 'RS',
+    roleTag: 'Fitness Member',
+    goal: 'Weight Loss',
+  },
+  {
+    name: 'Priya Patel',
+    email: 'priya.nutritionist@gmail.com',
+    avatarBg: 'bg-sky-600',
+    initials: 'PP',
+    roleTag: 'Nutritionist Expert',
+    goal: 'Balanced Health',
+  },
+  {
+    name: 'Vikram Singh',
+    email: 'vikram.athlete@gmail.com',
+    avatarBg: 'bg-orange-600',
+    initials: 'VS',
+    roleTag: 'Pro Athlete',
+    goal: 'Muscle Gain',
+  },
+  {
+    name: 'Ananya Gupta',
+    email: 'ananya.vegan@gmail.com',
+    avatarBg: 'bg-teal-600',
+    initials: 'AG',
+    roleTag: 'Vegan Diet Specialist',
+    goal: 'Plant-Based Nutrition',
   },
   {
     name: 'Admin System',
     email: 'admin.nutrisense@gmail.com',
-    avatarBg: 'bg-amber-600',
+    avatarBg: 'bg-rose-600',
     initials: 'AS',
+    roleTag: 'Administrator',
+    goal: 'System Management',
   },
 ];
 
@@ -40,12 +72,20 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
   onClose,
   onSelectAccount,
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customEmail, setCustomEmail] = useState('');
   const [customName, setCustomName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const filteredAccounts = PRESET_ACCOUNTS.filter(
+    acc =>
+      acc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      acc.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      acc.roleTag.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleSelect = (email: string, name: string) => {
     onSelectAccount(email, name);
@@ -87,11 +127,11 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
             </svg>
           </div>
 
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            Choose an account
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center justify-center gap-1.5">
+            Choose a Google Account
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            to continue to <span className="font-semibold text-emerald-600 dark:text-emerald-400">NutriSense AI</span>
+            to sign in and enable <span className="font-semibold text-emerald-600 dark:text-emerald-400">NutriSense AI Assistant</span>
           </p>
         </div>
 
@@ -99,29 +139,52 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
         <div className="p-6 space-y-4">
           {!showCustomInput ? (
             <>
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                {PRESET_ACCOUNTS.map((acc) => (
-                  <button
-                    key={acc.email}
-                    onClick={() => handleSelect(acc.email, acc.name)}
-                    className="w-full p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-emerald-500/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 text-left transition-all flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-10 h-10 rounded-full ${acc.avatarBg} text-white font-bold text-sm flex items-center justify-center shadow-sm flex-shrink-0`}>
-                        {acc.initials}
-                      </div>
-                      <div className="overflow-hidden">
-                        <div className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                          {acc.name}
+              {/* Account Search Filter */}
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search emails or profiles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                {filteredAccounts.length > 0 ? (
+                  filteredAccounts.map((acc) => (
+                    <button
+                      key={acc.email}
+                      onClick={() => handleSelect(acc.email, acc.name)}
+                      className="w-full p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-emerald-500/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 text-left transition-all flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full ${acc.avatarBg} text-white font-bold text-xs flex items-center justify-center shadow-sm flex-shrink-0`}>
+                          {acc.initials}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                          {acc.email}
+                        <div className="overflow-hidden">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                              {acc.name}
+                            </span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold border border-slate-200/60 dark:border-slate-700 flex-shrink-0">
+                              {acc.roleTag}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                            {acc.email}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
-                  </button>
-                ))}
+                      <ArrowRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-xs text-slate-400">
+                    No matching accounts found. Use custom option below.
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -131,7 +194,7 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
                   className="w-full p-3 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-2 transition-all"
                 >
                   <UserPlus className="w-4 h-4 text-emerald-500" />
-                  Use another Google email ID
+                  Use another Google Email ID
                 </button>
               </div>
             </>
@@ -193,10 +256,10 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
           )}
         </div>
 
-        {/* Security Footer */}
+        {/* Security & AI Chatbot Badge */}
         <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Encrypted OAuth 2.0 Identity Authentication</span>
+          <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Connects to AI Health Chatbot & Dashboard</span>
         </div>
       </div>
     </div>

@@ -351,8 +351,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const googleLogin = async (emailParam?: string, nameParam?: string): Promise<boolean> => {
     setLoading(true);
-    const googleEmail = emailParam || 'user.google@gmail.com';
-    const googleName = nameParam || 'Google User';
+    const googleEmail = (emailParam || 'user.google@gmail.com').toLowerCase().trim();
+    const googleName = nameParam || googleEmail.split('@')[0];
 
     try {
       const response = await api.post('/auth/google', { email: googleEmail, name: googleName });
@@ -369,23 +369,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Backend API Google Auth notice:', error.message);
     }
 
-    // Fallback for demo/offline Google Auth
+    // Dynamic profile customization based on selected account email
+    const isVegan = googleEmail.includes('vegan');
+    const isAthlete = googleEmail.includes('athlete');
+    const isAdmin = googleEmail.includes('admin');
+    const isRahul = googleEmail.includes('rahul');
+
     const googleUserObj: UserType = {
       id: `google_user_${Date.now()}`,
       name: googleName,
       email: googleEmail,
-      role: 'user',
-      age: 27,
-      gender: 'Other',
-      height: 172,
-      weight: 68,
-      activityLevel: 'Moderately Active',
-      goal: 'Maintain Weight',
+      role: isAdmin ? 'admin' : 'user',
+      age: isAthlete ? 24 : isRahul ? 28 : 27,
+      gender: googleName.toLowerCase().includes('ananya') || googleName.toLowerCase().includes('priya') ? 'Female' : 'Male',
+      height: isAthlete ? 182 : 172,
+      weight: isAthlete ? 82 : isRahul ? 78 : 68,
+      activityLevel: isAthlete ? 'Extra Active' : 'Moderately Active',
+      goal: isAthlete ? 'Weight Gain' : isVegan ? 'Mild Weight Loss' : isRahul ? 'Weight Loss' : 'Maintain Weight',
       medicalConditions: [],
-      allergies: [],
-      foodPreference: 'Veg',
-      cuisinePreference: 'All',
-      dailyWaterGoal: 2800,
+      allergies: isVegan ? ['Dairy', 'Eggs'] : [],
+      foodPreference: isVegan ? 'Vegan' : 'Veg',
+      cuisinePreference: isAthlete ? 'High Protein' : 'All',
+      dailyWaterGoal: isAthlete ? 3800 : 3000,
       sleepHours: 8,
       favorites: [],
       notificationSettings: {
