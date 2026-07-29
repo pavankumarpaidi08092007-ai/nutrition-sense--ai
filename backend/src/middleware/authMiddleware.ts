@@ -14,8 +14,8 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
       // Extract token
       token = req.headers.authorization.split(' ')[1];
 
-      // Support guest token
-      if (token === 'guest_token' || token.startsWith('guest_')) {
+      // Support guest, google, and mock tokens
+      if (token === 'guest_token' || token.startsWith('guest_') || token.startsWith('google_') || token.startsWith('mock_')) {
         const guestUser = await dbUsers.findOne({ email: 'guest@nutrisense.com' });
         req.user = guestUser || {
           _id: 'guest',

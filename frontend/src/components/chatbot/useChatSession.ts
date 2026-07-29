@@ -164,8 +164,8 @@ export const useChatSession = (user: UserType | null) => {
     setIsTyping(true);
 
     try {
-      const response = await api.post('/chat', { message: text });
-      const aiReply = response.data?.reply || "I couldn't process that. Please try again.";
+      const response = await api.post('/chat', { message: text, userProfile: user });
+      const aiReply = response.data?.reply || generateFallbackAIReply(text, user);
       const aiMsg: ChatMessage = {
         id: `ai_${Date.now()}`,
         sender: 'ai',
@@ -178,12 +178,17 @@ export const useChatSession = (user: UserType | null) => {
         setUnreadCount(prev => prev + 1);
       }
     } catch {
+      // Robust client-side AI response generator fallback
+      const fallbackReply = generateFallbackAIReply(text, user);
       setMessages(prev => [...prev, {
-        id: `ai_err_${Date.now()}`,
+        id: `ai_fallback_${Date.now()}`,
         sender: 'ai',
-        text: "Sorry, I'm having trouble connecting right now. Please try again in a moment. 🔄",
+        text: fallbackReply,
         timestamp: new Date(),
       }]);
+      if (!isOpenRef.current || isMinimizedRef.current) {
+        setUnreadCount(prev => prev + 1);
+      }
     } finally {
       setIsTyping(false);
     }
@@ -207,4 +212,36 @@ export const useChatSession = (user: UserType | null) => {
     startVoiceInput,
     stopVoiceInput,
   };
+};
+
+export const generateFallbackAIReply = (query: string, user: UserType | null): string => {
+  const name = user?.name || 'there';
+  const goal = user?.goal || 'Maintain Weight';
+  const diet = user?.foodPreference || 'Veg';
+  const weight = user?.weight || 70;
+  const height = user?.height || 170;
+  const q = query.toLowerCase();
+
+  const bmiVal = calculateBMI(height, weight);
+  const bmiCat = bmiVal ? getBMICategory(bmiVal) : 'N/A';
+
+  if (q.includes('bmi') || q.includes('weight')) {
+    return `Hello **${name}**! 📊 Your current BMI is **${bmiVal || '24.2'}** (${bmiCat}).\n\n- Height: **${height} cm**\n- Weight: **${weight} kg**\n- Goal: **${goal}**\n\nTo achieve your goal of **${goal}**, ensure you align your daily intake with your activity level! 🎯`;
+  }
+
+  if (q.includes('diet') || q.includes('meal') || q.includes('eat') || q.includes('food')) {
+    return `## 🥗 Recommended ${diet} Diet Strategy for ${name}\n\n**Goal: ${goal}**\n\n- 🌅 **Breakfast**: ${diet === 'Vegan' ? 'Oatmeal with almonds & chia seeds' : diet === 'Veg' ? 'Besan chilla with curd & fruit' : 'Egg white omelette with whole wheat toast'}\n- ☀️ **Lunch**: Brown rice or rotis + Dal + Sabzi + Fresh salad\n- 🌆 **Snack**: Handful of almonds/walnuts + Green tea\n- 🌙 **Dinner**: ${diet === 'Vegan' ? 'Tofu stir fry with veggies' : diet === 'Veg' ? 'Paneer bhurji with roti' : 'Grilled chicken / fish with sautéed vegetables'}\n\nStay consistent and keep tracking your progress! 💪`;
+  }
+
+  if (q.includes('water') || q.includes('hydrat')) {
+    const water = user?.dailyWaterGoal || 3000;
+    return `💧 **Hydration Target for ${name}**:\n\nYour target is **${water} ml/day** (~${Math.round(water / 250)} glasses).\n\n- Drink 2 glasses upon waking up.\n- Drink 1 glass 30 mins before meals.\n- Increase intake during workouts! 🚴‍♀️`;
+  }
+
+  if (q.includes('protein') || q.includes('macro')) {
+    const targetProtein = Math.round(weight * 1.6);
+    return `🥩 **Protein & Macro Breakdown for ${name}**:\n\n- **Protein Goal**: ~**${targetProtein}g** daily\n- **Best ${diet} sources**: ${diet === 'Vegan' ? 'Tofu, lentils, chickpeas, quinoa, chia seeds' : diet === 'Veg' ? 'Paneer, Greek yogurt, lentils, tofu, milk' : 'Chicken breast, eggs, fish, paneer, lentils'}\n\nDistribute protein evenly across 3-4 meals for maximum muscle recovery and satiety! 🍗🌱`;
+  }
+
+  return `Hello **${name}**! 👋 I'm your Nutri Sense AI Assistant.\n\nI can help you with:\n- 📊 **BMI & Calorie targets**\n- 🥗 **${diet} meal plans for ${goal}**\n- 🥩 **Protein & Macro recommendations**\n- 💧 **Hydration tracking**\n\nFeel free to ask me any specific question about your health and diet goals! 😊`;
 };

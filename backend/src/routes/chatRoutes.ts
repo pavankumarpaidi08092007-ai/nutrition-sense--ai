@@ -18,7 +18,7 @@ const has = (input: string, ...terms: string[]) =>
 // @route   POST /api/chat
 // @desc    AI Nutrition Assistant – comprehensive keyword-driven responses with user context
 router.post('/', async (req: AuthRequest, res: Response) => {
-  const { message } = req.body;
+  const { message, userProfile } = req.body;
   const fallbackUser = {
     name: 'there',
     age: 30,
@@ -33,7 +33,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     dailyWaterGoal: 2500,
     sleepHours: 7,
   };
-  const user = (req.user ?? fallbackUser) as any;
+  const user = (req.user || userProfile || fallbackUser) as any;
 
   try {
     if (!message) {
