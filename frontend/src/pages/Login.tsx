@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Activity, Mail, Lock, ShieldAlert, ArrowRight, UserCheck, KeyRound, Sparkles } from 'lucide-react';
+import { GoogleAuthModal } from '../components/GoogleAuthModal';
 
 export const Login: React.FC = () => {
   const { user, login, googleLogin, guestLogin } = useAuth();
@@ -12,6 +13,7 @@ export const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
 
   // Load remembered email on mount (Passwords are never stored in localStorage for security)
@@ -55,11 +57,11 @@ export const Login: React.FC = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSelectAccount = async (selectedEmail: string, selectedName: string) => {
     setError(null);
     setGoogleLoading(true);
     try {
-      const success = await googleLogin();
+      const success = await googleLogin(selectedEmail, selectedName);
       if (success) {
         navigate('/dashboard');
       }
@@ -143,7 +145,7 @@ export const Login: React.FC = () => {
           {/* Google Sign In Button */}
           <button
             type="button"
-            onClick={handleGoogleSignIn}
+            onClick={() => setIsGoogleModalOpen(true)}
             disabled={googleLoading}
             className="w-full py-2.5 px-4 rounded-xl border border-slate-250 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-200 font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-2.5"
           >
@@ -289,6 +291,12 @@ export const Login: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <GoogleAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onSelectAccount={handleGoogleSelectAccount}
+      />
     </div>
   );
 };
