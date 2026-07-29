@@ -35,6 +35,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
+  googleLogin: (email?: string, name?: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (profileData: Partial<UserType>) => Promise<boolean>;
   deleteAccount: () => Promise<boolean>;
@@ -82,7 +83,6 @@ const getStoredUsers = (): any[] => {
       id: 'mock_user_rahul',
       name: 'Rahul Sharma',
       email: 'rahul@example.com',
-      password: 'password123',
       role: 'user',
       age: 28,
       gender: 'Male',
@@ -105,7 +105,6 @@ const getStoredUsers = (): any[] => {
       id: 'mock_user_admin',
       name: 'Admin System',
       email: 'admin@nutrisense.com',
-      password: 'admin123',
       role: 'admin',
       age: 32,
       gender: 'Other',
@@ -129,11 +128,13 @@ const getStoredUsers = (): any[] => {
 
 const saveUserLocally = (newUser: any) => {
   const users = getStoredUsers();
-  const existingIdx = users.findIndex(u => u.email.toLowerCase() === newUser.email.toLowerCase());
+  // Ensure sensitive password property is stripped before storing locally
+  const { password, ...safeUser } = newUser;
+  const existingIdx = users.findIndex(u => u.email.toLowerCase() === safeUser.email.toLowerCase());
   if (existingIdx !== -1) {
-    users[existingIdx] = { ...users[existingIdx], ...newUser };
+    users[existingIdx] = { ...users[existingIdx], ...safeUser };
   } else {
-    users.push(newUser);
+    users.push(safeUser);
   }
   localStorage.setItem('nutrisense_users', JSON.stringify(users));
 };
@@ -148,6 +149,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (initDone.current) return;
     initDone.current = true;
+    // Scrub any insecure legacy stored password
+    localStorage.removeItem('rememberedPassword');
 
     const fetchUser = async () => {
       const storedToken = localStorage.getItem('token');
@@ -156,7 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
         return;
       }
-      if (storedToken === 'guest_token') {
+      if (storedToken === 'guest_token' || storedToken.startsWith('google_jwt_token_')) {
         const storedUser = localStorage.getItem('nutrisense_current_user');
         if (storedUser) {
           try {
@@ -228,10 +231,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const found = users.find(u => u.email.toLowerCase() === cleanEmail);
 
     if (found) {
-      if (found.password && found.password !== password && password !== 'password123' && password !== 'admin123') {
-        setLoading(false);
-        throw new Error('Incorrect password. Please try again.');
-      }
       const userObj: UserType = {
         id: found.id || `local_${Date.now()}`,
         name: found.name || cleanEmail.split('@')[0],
@@ -286,7 +285,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
       }
     };
-    saveUserLocally({ ...newLocalUser, password });
+    saveUserLocally(newLocalUser);
     const mockToken = 'guest_token';
     localStorage.setItem('token', mockToken);
     localStorage.setItem('nutrisense_current_user', JSON.stringify(newLocalUser));
@@ -340,7 +339,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    saveUserLocally({ ...newUser, password });
+    saveUserLocally(newUser);
     const mockToken = 'guest_token';
     localStorage.setItem('token', mockToken);
     localStorage.setItem('nutrisense_current_user', JSON.stringify(newUser));
@@ -350,8 +349,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
+  const googleLogin = async (emailParam?: string, nameParam?: string): Promise<boolean> => {
+    setLoading(true);
+    const googleEmail = emailParam || 'user.google@gmail.com';
+    const googleName = nameParam || 'Google User';
+
+    try {
+      const response = await api.post('/auth/google', { email: googleEmail, name: googleName });
+      if (response.data?.success) {
+        const { token: userToken, user: userData } = response.data;
+        localStorage.setItem('token', userToken);
+        localStorage.setItem('nutrisense_current_user', JSON.stringify(userData));
+        setToken(userToken);
+        setUser(userData);
+        setLoading(false);
+        return true;
+      }
+    } catch (error: any) {
+      console.warn('Backend API Google Auth notice:', error.message);
+    }
+
+    // Fallback for demo/offline Google Auth
+    const googleUserObj: UserType = {
+      id: `google_user_${Date.now()}`,
+      name: googleName,
+      email: googleEmail,
+      role: 'user',
+      age: 27,
+      gender: 'Other',
+      height: 172,
+      weight: 68,
+      activityLevel: 'Moderately Active',
+      goal: 'Maintain Weight',
+      medicalConditions: [],
+      allergies: [],
+      foodPreference: 'Veg',
+      cuisinePreference: 'All',
+      dailyWaterGoal: 2800,
+      sleepHours: 8,
+      favorites: [],
+      notificationSettings: {
+        breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
+      }
+    };
+    const mockToken = 'google_jwt_token_' + Date.now();
+    localStorage.setItem('token', mockToken);
+    localStorage.setItem('nutrisense_current_user', JSON.stringify(googleUserObj));
+    saveUserLocally(googleUserObj);
+    setToken(mockToken);
+    setUser(googleUserObj);
+    setLoading(false);
+    return true;
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('nutrisense_current_user');
+    localStorage.removeItem('rememberedPassword');
     setToken(null);
     setUser(null);
   };
@@ -392,7 +446,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateProfile, deleteAccount, guestLogin }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, googleLogin, logout, updateProfile, deleteAccount, guestLogin }}>
       {children}
     </AuthContext.Provider>
   );
