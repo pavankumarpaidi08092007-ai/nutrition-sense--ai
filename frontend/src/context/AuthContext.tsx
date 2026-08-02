@@ -4,14 +4,16 @@ import api from '../services/api';
 export interface UserType {
   id: string;
   name: string;
+  username?: string;
   email: string;
+  phone?: string;
   role: 'user' | 'admin';
   age: number;
   gender: 'Male' | 'Female' | 'Other';
   height: number;
   weight: number;
-  activityLevel: 'Sedentary' | 'Lightly Active' | 'Moderately Active' | 'Very Active' | 'Extra Active';
-  goal: 'Weight Loss' | 'Mild Weight Loss' | 'Maintain Weight' | 'Mild Weight Gain' | 'Weight Gain';
+  activityLevel: 'Sedentary' | 'Lightly Active' | 'Moderately Active' | 'Very Active' | 'Athlete' | 'Extra Active';
+  goal: 'Weight Loss' | 'Weight Gain' | 'Muscle Gain' | 'Maintenance' | 'Healthy Lifestyle' | 'Mild Weight Loss' | 'Maintain Weight' | 'Mild Weight Gain';
   medicalConditions: string[];
   allergies: string[];
   foodPreference: 'Veg' | 'Non-Veg' | 'Eggitarian' | 'Vegan';
@@ -27,14 +29,30 @@ export interface UserType {
     exercise: boolean;
     sleep: boolean;
   };
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
+export interface RegisterPayload {
+  name: string;
+  username?: string;
+  email: string;
+  phone?: string;
+  password: string;
+  age?: number;
+  gender?: 'Male' | 'Female' | 'Other';
+  height?: number;
+  weight?: number;
+  goal?: string;
+  activityLevel?: string;
 }
 
 interface AuthContextType {
   user: UserType | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  login: (emailOrUsername: string, password: string) => Promise<boolean>;
+  register: (payloadOrName: string | RegisterPayload, email?: string, password?: string) => Promise<boolean>;
   googleLogin: (email?: string, name?: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (profileData: Partial<UserType>) => Promise<boolean>;
@@ -207,12 +225,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchUser();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (emailOrUsername: string, password: string): Promise<boolean> => {
     setLoading(true);
-    const cleanEmail = email.trim().toLowerCase();
+    const identifier = emailOrUsername.trim().toLowerCase();
 
     try {
-      const response = await api.post('/auth/login', { email: cleanEmail, password });
+      const response = await api.post('/auth/login', { email: identifier, username: identifier, password });
       if (response.data?.success) {
         const { token: userToken, user: userData } = response.data;
         localStorage.setItem('token', userToken);
@@ -223,25 +241,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
     } catch (error: any) {
-      console.warn('Backend API login notice:', error.message);
+      setLoading(false);
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      throw new Error(message);
     }
 
-    // Seamless Local & GitHub Demo Authentication Fallback
+    // Seamless Local Fallback if offline
     const users = getStoredUsers();
-    const found = users.find(u => u.email.toLowerCase() === cleanEmail);
+    const found = users.find(u => u.email.toLowerCase() === identifier || u.username?.toLowerCase() === identifier);
 
     if (found) {
       const userObj: UserType = {
         id: found.id || `local_${Date.now()}`,
-        name: found.name || cleanEmail.split('@')[0],
+        name: found.name || identifier.split('@')[0],
+        username: found.username || identifier.split('@')[0],
         email: found.email,
-        role: found.role || (cleanEmail.includes('admin') ? 'admin' : 'user'),
+        phone: found.phone || '',
+        role: found.role || (identifier.includes('admin') ? 'admin' : 'user'),
         age: found.age ?? 28,
         gender: found.gender ?? 'Male',
         height: found.height ?? 175,
         weight: found.weight ?? 74,
         activityLevel: found.activityLevel ?? 'Moderately Active',
-        goal: found.goal ?? 'Maintain Weight',
+        goal: found.goal ?? 'Maintenance',
         medicalConditions: found.medicalConditions ?? [],
         allergies: found.allergies ?? [],
         foodPreference: found.foodPreference ?? 'Veg',
@@ -262,18 +284,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     }
 
-    // Dynamic User Session Creation for any email
     const newLocalUser: UserType = {
       id: `local_user_${Date.now()}`,
-      name: cleanEmail.split('@')[0] || 'User',
-      email: cleanEmail,
-      role: cleanEmail.includes('admin') ? 'admin' : 'user',
+      name: identifier.split('@')[0] || 'User',
+      username: identifier.split('@')[0],
+      email: identifier.includes('@') ? identifier : `${identifier}@nutrisense.com`,
+      role: identifier.includes('admin') ? 'admin' : 'user',
       age: 28,
       gender: 'Male',
       height: 175,
       weight: 74,
       activityLevel: 'Moderately Active',
-      goal: 'Maintain Weight',
+      goal: 'Maintenance',
       medicalConditions: [],
       allergies: [],
       foodPreference: 'Veg',
@@ -295,13 +317,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+  const register = async (
+    payloadOrName: string | RegisterPayload,
+    emailParam?: string,
+    passwordParam?: string
+  ): Promise<boolean> => {
     setLoading(true);
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanName = name.trim();
+
+    let payload: RegisterPayload;
+    if (typeof payloadOrName === 'object') {
+      payload = payloadOrName;
+    } else {
+      payload = {
+        name: payloadOrName,
+        email: emailParam || '',
+        password: passwordParam || '',
+      };
+    }
+
+    const cleanEmail = payload.email.trim().toLowerCase();
+    const cleanName = payload.name.trim();
 
     try {
-      const response = await api.post('/auth/register', { name: cleanName, email: cleanEmail, password });
+      const response = await api.post('/auth/register', {
+        ...payload,
+        name: cleanName,
+        email: cleanEmail,
+      });
+
       if (response.data?.success) {
         const { token: userToken, user: userData } = response.data;
         localStorage.setItem('token', userToken);
@@ -312,21 +355,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
     } catch (error: any) {
-      console.warn('Backend API register notice:', error.message);
+      setLoading(false);
+      const message = error.response?.data?.message || error.message || 'Registration failed';
+      throw new Error(message);
     }
 
-    // Seamless Local & GitHub Registration Fallback
+    // Local Fallback
     const newUser: UserType = {
       id: `local_user_${Date.now()}`,
       name: cleanName || 'User',
+      username: payload.username || cleanName.toLowerCase().replace(/\s+/g, '_'),
       email: cleanEmail,
+      phone: payload.phone || '',
       role: cleanEmail.includes('admin') ? 'admin' : 'user',
-      age: 25,
-      gender: 'Male',
-      height: 170,
-      weight: 65,
-      activityLevel: 'Moderately Active',
-      goal: 'Maintain Weight',
+      age: payload.age || 25,
+      gender: payload.gender || 'Male',
+      height: payload.height || 170,
+      weight: payload.weight || 65,
+      activityLevel: (payload.activityLevel as any) || 'Moderately Active',
+      goal: (payload.goal as any) || 'Maintenance',
       medicalConditions: [],
       allergies: [],
       foodPreference: 'Veg',

@@ -3,7 +3,9 @@ import { Schema, model } from 'mongoose';
 const userSchema = new Schema(
   {
     name: { type: String, required: true },
+    username: { type: String, required: false, unique: true, sparse: true, index: true },
     email: { type: String, required: true, unique: true, index: true },
+    phone: { type: String, default: '' },
     password: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     
@@ -14,14 +16,16 @@ const userSchema = new Schema(
     weight: { type: Number, default: 65 },  // in kg
     activityLevel: { 
       type: String, 
-      enum: ['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active', 'Extra Active'],
+      enum: ['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active', 'Athlete', 'Extra Active'],
       default: 'Sedentary' 
     },
     goal: { 
       type: String, 
-      enum: ['Weight Loss', 'Mild Weight Loss', 'Maintain Weight', 'Mild Weight Gain', 'Weight Gain'],
-      default: 'Maintain Weight' 
+      enum: ['Weight Loss', 'Weight Gain', 'Muscle Gain', 'Maintenance', 'Healthy Lifestyle', 'Mild Weight Loss', 'Maintain Weight', 'Mild Weight Gain'],
+      default: 'Maintenance' 
     },
+    resetOtp: { type: String, default: null },
+    resetOtpExpires: { type: Date, default: null },
     medicalConditions: { type: [String], default: ['None'] },
     allergies: { type: [String], default: ['None'] },
     foodPreference: { type: String, enum: ['Veg', 'Non-Veg', 'Eggitarian', 'Vegan'], default: 'Veg' },

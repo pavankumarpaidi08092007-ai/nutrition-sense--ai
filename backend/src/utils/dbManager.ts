@@ -51,7 +51,9 @@ const initMemoryStoreUsers = () => {
       {
         _id: 'mock_user_rahul',
         name: 'Rahul Sharma',
+        username: 'rahul_sharma',
         email: 'rahul@example.com',
+        phone: '+1234567890',
         password: userPass,
         role: 'user',
         age: 28,
@@ -59,7 +61,7 @@ const initMemoryStoreUsers = () => {
         height: 175,
         weight: 74,
         activityLevel: 'Moderately Active',
-        goal: 'Maintain Weight',
+        goal: 'Maintenance',
         medicalConditions: [],
         allergies: [],
         foodPreference: 'Veg',
@@ -81,7 +83,9 @@ const initMemoryStoreUsers = () => {
       {
         _id: 'mock_user_admin',
         name: 'Admin System',
+        username: 'admin_sys',
         email: 'admin@nutrisense.com',
+        phone: '+1987654321',
         password: adminPass,
         role: 'admin',
         age: 32,
@@ -89,7 +93,7 @@ const initMemoryStoreUsers = () => {
         height: 170,
         weight: 68,
         activityLevel: 'Very Active',
-        goal: 'Maintain Weight',
+        goal: 'Maintenance',
         medicalConditions: [],
         allergies: [],
         foodPreference: 'Veg',
@@ -125,6 +129,14 @@ export const dbUsers = {
   find: async (query: any = {}) => {
     if (isUsingMockDB) {
       return memoryStore.users.filter(u => {
+        if (query.$or && Array.isArray(query.$or)) {
+          return query.$or.some((subQuery: any) => {
+            for (const key in subQuery) {
+              if (u[key] !== subQuery[key]) return false;
+            }
+            return true;
+          });
+        }
         for (const key in query) {
           if (u[key] !== query[key]) return false;
         }
@@ -137,6 +149,14 @@ export const dbUsers = {
   findOne: async (query: any = {}) => {
     if (isUsingMockDB) {
       return memoryStore.users.find(u => {
+        if (query.$or && Array.isArray(query.$or)) {
+          return query.$or.some((subQuery: any) => {
+            for (const key in subQuery) {
+              if (u[key] !== subQuery[key]) return false;
+            }
+            return true;
+          });
+        }
         for (const key in query) {
           if (u[key] !== query[key]) return false;
         }

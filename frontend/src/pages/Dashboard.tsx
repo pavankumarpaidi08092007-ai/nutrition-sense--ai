@@ -186,21 +186,34 @@ export const Dashboard: React.FC = () => {
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
           <div>
             <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider mb-1">
-              <Sparkles className="w-3.5 h-3.5" /> Personal Health Assessment
+              <Sparkles className="w-3.5 h-3.5" /> Personal Health Assessment Hub
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white">
-              Welcome back, {profileName}!
+              Hello, {profileName}! 👋
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Goal: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{profileGoal}</span> · Preference: <span className="font-semibold">{profileFoodPreference}</span>
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-extrabold border border-emerald-500/20">
+                Current Goal: {profileGoal}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 text-xs font-extrabold border border-sky-500/20">
+                Today's BMI: {stats?.bmi?.toFixed(1) || '22.5'} ({stats?.bmiCategory || 'Normal'})
+              </span>
+            </div>
           </div>
-          <Link
-            to="/profile-edit"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all"
-          >
-            Update Profile <ChevronRight className="w-4 h-4" />
-          </Link>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              to="/meal-planner"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-105 shadow-md shadow-emerald-500/20 transition-all glow-btn-green"
+            >
+              <Sparkles className="w-4 h-4" /> Quick Start Meal Plan
+            </Link>
+            <Link
+              to="/profile-edit"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+            >
+              Update Profile <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         {/* CORE METRICS GRID */}

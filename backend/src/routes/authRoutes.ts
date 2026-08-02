@@ -12,68 +12,131 @@ const generateToken = (id: string) => {
   });
 };
 
+// Helper function to build sanitized user payload
+const formatUserPayload = (user: any) => {
+  const userId = user._id || user.id;
+  return {
+    id: userId,
+    name: user.name,
+    username: user.username || user.name?.toLowerCase().replace(/\s+/g, '_'),
+    email: user.email,
+    phone: user.phone || '',
+    role: user.role || 'user',
+    age: user.age ?? 25,
+    gender: user.gender ?? 'Male',
+    height: user.height ?? 170,
+    weight: user.weight ?? 65,
+    activityLevel: user.activityLevel ?? 'Moderately Active',
+    goal: user.goal ?? 'Maintenance',
+    medicalConditions: user.medicalConditions ?? [],
+    allergies: user.allergies ?? [],
+    foodPreference: user.foodPreference ?? 'Veg',
+    cuisinePreference: user.cuisinePreference ?? 'All',
+    dailyWaterGoal: user.dailyWaterGoal ?? 3000,
+    sleepHours: user.sleepHours ?? 8,
+    favorites: user.favorites || [],
+    notificationSettings: user.notificationSettings || {
+      breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
+    },
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt
+  };
+};
+
+// @route   GET api/auth/check-username
+// @desc    Check if username already exists
+router.get('/check-username', async (req: any, res: Response) => {
+  try {
+    const { username } = req.query;
+    if (!username || typeof username !== 'string') {
+      return res.status(400).json({ success: false, message: 'Username parameter is required' });
+    }
+
+    const cleanUsername = username.trim().toLowerCase();
+    const existing = await dbUsers.findOne({ username: cleanUsername });
+
+    res.json({
+      success: true,
+      username: cleanUsername,
+      available: !existing,
+      exists: !!existing,
+      message: existing ? 'Username already taken' : 'Username is available'
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // @route   POST api/auth/register
-// @desc    Register a new user
+// @desc    Register a new user with health profile
 router.post('/register', async (req: any, res: Response) => {
-  const { name, email, password } = req.body;
+  const {
+    name, username, email, phone, password,
+    age, gender, height, weight, goal, activityLevel
+  } = req.body;
 
   try {
     if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide name, email and password' });
+      return res.status(400).json({ success: false, message: 'Full name, email, and password are required.' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim();
+    const cleanUsername = (username || cleanName.toLowerCase().replace(/[^a-z0-9_]/g, '_')).trim().toLowerCase();
 
-    if (password.length < 4) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 4 characters long' });
+    // Check if email already exists
+    const emailExists = await dbUsers.findOne({ email: cleanEmail });
+    if (emailExists) {
+      return res.status(400).json({ success: false, message: 'An account with this email address already exists. Please sign in instead.' });
     }
 
-    // Check if user already exists
-    const userExists = await dbUsers.findOne({ email: cleanEmail });
-    if (userExists) {
-      return res.status(400).json({ success: false, message: 'An account with this email already exists. Please sign in instead.' });
+    // Check if username already exists
+    if (cleanUsername) {
+      const usernameExists = await dbUsers.findOne({ username: cleanUsername });
+      if (usernameExists) {
+        return res.status(400).json({ success: false, message: 'This username is already taken. Please choose another username.' });
+      }
+    }
+
+    // Password validation (min 8 chars)
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
     }
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user with default profile parameters
+    // Create user with health parameters
     const user = await dbUsers.create({
       name: cleanName,
+      username: cleanUsername,
       email: cleanEmail,
+      phone: phone ? phone.trim() : '',
       password: hashedPassword,
-      role: cleanEmail.includes('admin') ? 'admin' : 'user', // auto-grant admin if email contains 'admin'
+      role: cleanEmail.includes('admin') ? 'admin' : 'user',
+      age: age ? Number(age) : 25,
+      gender: gender || 'Male',
+      height: height ? Number(height) : 170,
+      weight: weight ? Number(weight) : 65,
+      goal: goal || 'Maintenance',
+      activityLevel: activityLevel || 'Moderately Active',
     });
 
-    const userId = user._id || user.id;
+    const token = generateToken(user._id || user.id);
+
+    // Set secure cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
 
     res.status(201).json({
       success: true,
-      token: generateToken(userId),
-      user: {
-        id: userId,
-        name: user.name,
-        email: user.email,
-        role: user.role || 'user',
-        age: user.age ?? 25,
-        gender: user.gender ?? 'Male',
-        height: user.height ?? 170,
-        weight: user.weight ?? 65,
-        activityLevel: user.activityLevel ?? 'Moderately Active',
-        goal: user.goal ?? 'Maintain Weight',
-        medicalConditions: user.medicalConditions ?? [],
-        allergies: user.allergies ?? [],
-        foodPreference: user.foodPreference ?? 'Veg',
-        cuisinePreference: user.cuisinePreference ?? 'All',
-        dailyWaterGoal: user.dailyWaterGoal ?? 3000,
-        sleepHours: user.sleepHours ?? 8,
-        favorites: user.favorites || [],
-        notificationSettings: user.notificationSettings || {
-          breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
-        }
-      }
+      message: 'User registered successfully',
+      token,
+      user: formatUserPayload(user)
     });
   } catch (error: any) {
     console.error('Registration Error:', error);
@@ -82,19 +145,23 @@ router.post('/register', async (req: any, res: Response) => {
 });
 
 // @route   POST api/auth/login
-// @desc    Authenticate user & get token
+// @desc    Authenticate user by Email or Username & get token
 router.post('/login', async (req: any, res: Response) => {
-  const { email, password } = req.body;
+  const { email, username, password } = req.body;
+  const loginIdentifier = (email || username || '').trim().toLowerCase();
 
   try {
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide email and password' });
+    if (!loginIdentifier || !password) {
+      return res.status(400).json({ success: false, message: 'Please provide email/username and password.' });
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const user = await dbUsers.findOne({ email: cleanEmail });
+    // Find user by email OR username
+    const user = await dbUsers.findOne({
+      $or: [{ email: loginIdentifier }, { username: loginIdentifier }]
+    });
+
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Account not found with this email. Please check email or register.' });
+      return res.status(401).json({ success: false, message: 'Invalid credentials. Account not found with this email or username.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -102,33 +169,19 @@ router.post('/login', async (req: any, res: Response) => {
       return res.status(401).json({ success: false, message: 'Incorrect password. Please try again.' });
     }
 
-    const userId = user._id || user.id;
+    const token = generateToken(user._id || user.id);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
     res.json({
       success: true,
-      token: generateToken(userId),
-      user: {
-        id: userId,
-        name: user.name,
-        email: user.email,
-        role: user.role || 'user',
-        age: user.age ?? 25,
-        gender: user.gender ?? 'Male',
-        height: user.height ?? 170,
-        weight: user.weight ?? 65,
-        activityLevel: user.activityLevel ?? 'Moderately Active',
-        goal: user.goal ?? 'Maintain Weight',
-        medicalConditions: user.medicalConditions ?? [],
-        allergies: user.allergies ?? [],
-        foodPreference: user.foodPreference ?? 'Veg',
-        cuisinePreference: user.cuisinePreference ?? 'All',
-        dailyWaterGoal: user.dailyWaterGoal ?? 3000,
-        sleepHours: user.sleepHours ?? 8,
-        favorites: user.favorites || [],
-        notificationSettings: user.notificationSettings || {
-          breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
-        }
-      }
+      message: 'Login successful',
+      token,
+      user: formatUserPayload(user)
     });
   } catch (error: any) {
     console.error('Login Error:', error);
@@ -136,38 +189,28 @@ router.post('/login', async (req: any, res: Response) => {
   }
 });
 
-// @route   GET api/auth/me
-// @desc    Get current user details
-router.get('/me', protect, async (req: AuthRequest, res: Response) => {
+// @route   POST api/auth/logout
+// @desc    Logout user & clear cookie
+router.post('/logout', (req: any, res: Response) => {
+  res.clearCookie('token');
+  res.json({ success: true, message: 'Logged out successfully.' });
+});
+
+// @route   GET api/auth/me & api/auth/profile
+// @desc    Get current user profile
+const getProfileHandler = async (req: AuthRequest, res: Response) => {
   const user = req.user;
   res.json({
     success: true,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      age: user.age,
-      gender: user.gender,
-      height: user.height,
-      weight: user.weight,
-      activityLevel: user.activityLevel,
-      goal: user.goal,
-      medicalConditions: user.medicalConditions,
-      allergies: user.allergies,
-      foodPreference: user.foodPreference,
-      cuisinePreference: user.cuisinePreference,
-      dailyWaterGoal: user.dailyWaterGoal,
-      sleepHours: user.sleepHours,
-      favorites: user.favorites || [],
-      notificationSettings: user.notificationSettings
-    }
+    user: formatUserPayload(user)
   });
-});
+};
+router.get('/me', protect, getProfileHandler);
+router.get('/profile', protect, getProfileHandler);
 
-// @route   PUT api/auth/me
+// @route   PUT api/auth/me & api/auth/profile
 // @desc    Update user profile details
-router.put('/me', protect, async (req: AuthRequest, res: Response) => {
+const updateProfileHandler = async (req: AuthRequest, res: Response) => {
   try {
     const updatedUser = await dbUsers.updateById(req.user._id, req.body);
     if (!updatedUser) {
@@ -176,74 +219,129 @@ router.put('/me', protect, async (req: AuthRequest, res: Response) => {
 
     res.json({
       success: true,
-      user: {
-        id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        age: updatedUser.age,
-        gender: updatedUser.gender,
-        height: updatedUser.height,
-        weight: updatedUser.weight,
-        activityLevel: updatedUser.activityLevel,
-        goal: updatedUser.goal,
-        medicalConditions: updatedUser.medicalConditions,
-        allergies: updatedUser.allergies,
-        foodPreference: updatedUser.foodPreference,
-        cuisinePreference: updatedUser.cuisinePreference,
-        dailyWaterGoal: updatedUser.dailyWaterGoal,
-        sleepHours: updatedUser.sleepHours,
-        favorites: updatedUser.favorites || [],
-        notificationSettings: updatedUser.notificationSettings
-      }
+      message: 'Profile updated successfully',
+      user: formatUserPayload(updatedUser)
     });
   } catch (error: any) {
     console.error('Update Profile Error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
+router.put('/me', protect, updateProfileHandler);
+router.put('/profile', protect, updateProfileHandler);
+
+// In-Memory store for simulated OTPs
+const otpStore: Record<string, { otp: string; expiresAt: number }> = {};
 
 // @route   POST api/auth/forgot-password
-// @desc    Request forgot password code
+// @desc    Send 6-digit OTP to user email
 router.post('/forgot-password', async (req: any, res: Response) => {
   const { email } = req.body;
   try {
-    const user = await dbUsers.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'No user registered with this email' });
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
-    // Simulation: Return success and a mock code
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await dbUsers.findOne({ email: cleanEmail });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'No account registered with this email address.' });
+    }
+
+    // Generate random 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    otpStore[cleanEmail] = { otp, expiresAt };
+
+    if (user._id) {
+      await dbUsers.updateById(user._id, { resetOtp: otp, resetOtpExpires: new Date(expiresAt) });
+    }
+
     res.json({
       success: true,
-      message: 'Password reset instructions sent. Please check your inbox.',
-      resetCode: '123456' // Simple mock code for development testing
+      message: `OTP code sent successfully to ${cleanEmail}. Check your inbox or use code ${otp}`,
+      otp // Included for seamless testing & local demonstration
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message || 'Forgot password request failed.' });
+  }
+});
+
+// @route   POST api/auth/verify-otp
+// @desc    Verify 6-digit OTP code
+router.post('/verify-otp', async (req: any, res: Response) => {
+  const { email, otp } = req.body;
+  try {
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: 'Email and OTP code are required.' });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    const record = otpStore[cleanEmail];
+
+    const user = await dbUsers.findOne({ email: cleanEmail });
+    const storedOtp = record?.otp || user?.resetOtp;
+    const isExpired = record?.expiresAt ? Date.now() > record.expiresAt : false;
+
+    if (!storedOtp || storedOtp !== otp.trim() || isExpired) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP code. Please request a new OTP.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'OTP verified successfully. You can now set a new password.'
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'OTP verification failed.' });
   }
 });
 
 // @route   POST api/auth/reset-password
-// @desc    Reset password with reset code
+// @desc    Reset password after OTP verification
 router.post('/reset-password', async (req: any, res: Response) => {
-  const { email, code, newPassword } = req.body;
+  const { email, otp, newPassword } = req.body;
   try {
-    if (code !== '123456') {
-      return res.status(400).json({ success: false, message: 'Invalid or expired reset code' });
+    if (!email || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Email and new password are required.' });
     }
-    const user = await dbUsers.findOne({ email: email.toLowerCase() });
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await dbUsers.findOne({ email: cleanEmail });
+
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({ success: false, message: 'User not found.' });
     }
-    
-    // Hash new password
+
+    // Verify OTP if passed
+    if (otp) {
+      const record = otpStore[cleanEmail];
+      const storedOtp = record?.otp || user?.resetOtp;
+      if (storedOtp && storedOtp !== otp.trim()) {
+        return res.status(400).json({ success: false, message: 'Invalid OTP code.' });
+      }
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-    
-    await dbUsers.updateById(user._id, { password: hashedPassword });
-    res.json({ success: true, message: 'Password has been successfully updated.' });
+
+    await dbUsers.updateById(user._id || user.id, {
+      password: hashedPassword,
+      resetOtp: null,
+      resetOtpExpires: null
+    });
+
+    delete otpStore[cleanEmail];
+
+    res.json({
+      success: true,
+      message: 'Password updated successfully! You can now log in with your new password.'
+    });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message || 'Password reset failed.' });
   }
 });
 
@@ -270,17 +368,18 @@ router.post('/google', async (req: any, res: Response) => {
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = (name || cleanEmail.split('@')[0]).trim();
+    const cleanUsername = cleanEmail.split('@')[0].replace(/[^a-z0-9_]/g, '_');
 
     let user = await dbUsers.findOne({ email: cleanEmail });
 
     if (!user) {
-      // Create user if they don't exist yet
       const randomPass = Math.random().toString(36).slice(-10) + Date.now();
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(randomPass, salt);
 
       user = await dbUsers.create({
         name: cleanName,
+        username: cleanUsername,
         email: cleanEmail,
         password: hashedPassword,
         googleId: googleId || `google_${Date.now()}`,
@@ -288,33 +387,18 @@ router.post('/google', async (req: any, res: Response) => {
       });
     }
 
-    const userId = user._id || user.id;
+    const token = generateToken(user._id || user.id);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
     res.json({
       success: true,
-      token: generateToken(userId),
-      user: {
-        id: userId,
-        name: user.name,
-        email: user.email,
-        role: user.role || 'user',
-        age: user.age ?? 25,
-        gender: user.gender ?? 'Male',
-        height: user.height ?? 170,
-        weight: user.weight ?? 65,
-        activityLevel: user.activityLevel ?? 'Moderately Active',
-        goal: user.goal ?? 'Maintain Weight',
-        medicalConditions: user.medicalConditions ?? [],
-        allergies: user.allergies ?? [],
-        foodPreference: user.foodPreference ?? 'Veg',
-        cuisinePreference: user.cuisinePreference ?? 'All',
-        dailyWaterGoal: user.dailyWaterGoal ?? 3000,
-        sleepHours: user.sleepHours ?? 8,
-        favorites: user.favorites || [],
-        notificationSettings: user.notificationSettings || {
-          breakfast: true, lunch: true, dinner: true, water: true, exercise: true, sleep: true
-        }
-      }
+      token,
+      user: formatUserPayload(user)
     });
   } catch (error: any) {
     console.error('Google Auth Error:', error);
