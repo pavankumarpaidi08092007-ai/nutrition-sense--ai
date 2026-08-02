@@ -484,36 +484,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                   className="space-y-5"
                 >
                   {/* Title & Subtitle */}
-                  <div className="text-center">
+                  <div className="text-center mb-2">
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white">
                       Welcome Back
                     </h2>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
                       Sign in to access your personalized nutrition dashboard.
                     </p>
-                  </div>
-
-                  {/* Quick Demo Credentials */}
-                  <div className="bg-slate-100/70 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/50 space-y-1.5">
-                    <span className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-center">
-                      ⚡ Quick Test Credentials
-                    </span>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={fillDemoUser}
-                        className="py-1.5 px-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-400/20 transition-all flex items-center justify-center gap-1"
-                      >
-                        <User className="w-3 h-3" /> User Demo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={fillDemoAdmin}
-                        className="py-1.5 px-2.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold border border-sky-400/20 transition-all flex items-center justify-center gap-1"
-                      >
-                        <KeyRound className="w-3 h-3" /> Admin Demo
-                      </button>
-                    </div>
                   </div>
 
                   <form onSubmit={handleLoginSubmit} className="space-y-4">

@@ -396,36 +396,38 @@ router.delete('/me', protect, async (req: AuthRequest, res: Response) => {
 // @route   POST api/auth/google
 // @desc    Authenticate or register user via Google Sign-In
 router.post('/google', async (req: any, res: Response) => {
-  const { email, name, googleId } = req.body;
+  const { email, name, picture, googleId, idToken } = req.body;
 
   try {
     if (!email) {
-      return res.status(400).json({ success: false, message: 'Google account email is required' });
+      return res.status(400).json({ success: false, message: 'Google account email address is required.' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = (name || cleanEmail.split('@')[0]).trim();
     const cleanUsername = cleanEmail.split('@')[0].replace(/[^a-z0-9_]/g, '_');
 
+    // Query database for existing user
     let user = await dbUsers.findOne({ email: cleanEmail });
 
     if (!user) {
-      const randomPass = Math.random().toString(36).slice(-10) + Date.now();
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(randomPass, salt);
-
+      // Create new real user record with authProvider: 'google'
       user = await dbUsers.create({
         name: cleanName,
         username: cleanUsername,
         email: cleanEmail,
-        password: hashedPassword,
+        authProvider: 'google',
+        picture: picture || '',
         googleId: googleId || `google_${Date.now()}`,
         role: cleanEmail.includes('admin') ? 'admin' : 'user',
       });
+    } else if (!user.picture && picture) {
+      await dbUsers.updateById(user._id || user.id, { picture });
     }
 
     const token = generateToken(user._id || user.id);
 
+    // Set secure HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -434,12 +436,13 @@ router.post('/google', async (req: any, res: Response) => {
 
     res.json({
       success: true,
+      message: 'Google Authentication successful',
       token,
       user: formatUserPayload(user)
     });
   } catch (error: any) {
     console.error('Google Auth Error:', error);
-    res.status(500).json({ success: false, message: error.message || 'Google authentication failed' });
+    res.status(500).json({ success: false, message: error.message || 'Google authentication failed due to server error' });
   }
 });
 

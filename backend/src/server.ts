@@ -19,6 +19,27 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Environment Variables Health & Security Audit
+const requiredEnvVars = [
+  { name: 'MONGO_URI', default: 'mongodb://127.0.0.1:27017/nutrisense', isCritical: false },
+  { name: 'JWT_SECRET', default: 'super_secret_nutrisense_key_2026', isCritical: false },
+  { name: 'GOOGLE_CLIENT_ID', default: 'NOT_SET', isCritical: false },
+  { name: 'GOOGLE_CLIENT_SECRET', default: 'NOT_SET', isCritical: false },
+  { name: 'FRONTEND_URL', default: 'http://localhost:5173', isCritical: false },
+  { name: 'BACKEND_URL', default: `http://localhost:${PORT}`, isCritical: false },
+];
+
+console.log('=== NUTRISENSE AUTHENTICATION ENVIRONMENT AUDIT ===');
+requiredEnvVars.forEach(env => {
+  const value = process.env[env.name];
+  if (!value) {
+    console.warn(`[WARN] Environment Variable '${env.name}' is not set. Using fallback: '${env.default}'`);
+  } else {
+    console.log(`[OK] Environment Variable '${env.name}' is configured.`);
+  }
+});
+console.log('====================================================');
+
 // Security Middlewares
 app.use(helmet());
 app.use(cors({

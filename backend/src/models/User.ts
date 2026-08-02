@@ -6,7 +6,9 @@ const userSchema = new Schema(
     username: { type: String, required: false, unique: true, sparse: true, index: true },
     email: { type: String, required: true, unique: true, index: true },
     phone: { type: String, default: '' },
-    password: { type: String, required: true },
+    password: { type: String, required: function(this: any) { return !this.authProvider || this.authProvider === 'local'; } },
+    authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
+    picture: { type: String, default: '' },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     
     // Health Profile Details
