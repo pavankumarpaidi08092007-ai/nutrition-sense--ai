@@ -46,6 +46,8 @@ api.interceptors.response.use(
       error.message = error.response.data.error;
     } else if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
       error.message = 'Unable to connect to backend server. Please verify the backend server is running.';
+    } else if (error.response?.status === 405) {
+      error.message = 'HTTP 405 Method Not Allowed: Please verify that POST is enabled for the endpoint.';
     } else if (error.response?.status === 401) {
       error.message = 'Invalid email address or password.';
     } else if (error.response?.status === 404) {

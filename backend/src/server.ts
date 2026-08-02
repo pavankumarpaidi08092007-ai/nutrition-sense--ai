@@ -42,11 +42,15 @@ console.log('====================================================');
 
 // Security Middlewares
 app.use(helmet());
+
+// CORS & Preflight OPTIONS handling
 app.use(cors({
   origin: '*', // For development, allow all origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true
 }));
+app.options('*', cors());
 
 // Rate Limiting to prevent denial of service
 const limiter = rateLimit({
@@ -56,8 +60,9 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Request parsing
+// Request parsing middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Base Route - returns API health status and active database connection
 app.get('/', (req, res) => {
@@ -78,6 +83,14 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
+
+// Catch-all 404 handler for undefined API routes
+app.use('/api/*', (req: express.Request, res: express.Response) => {
+  res.status(404).json({
+    success: false,
+    message: `API endpoint ${req.method} ${req.originalUrl} not found.`
+  });
+});
 
 // Error Handling Middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
