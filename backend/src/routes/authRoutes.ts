@@ -150,36 +150,43 @@ router.post('/login', async (req: any, res: Response) => {
   const { email, username, password } = req.body;
   const loginIdentifier = (email || username || '').trim().toLowerCase();
 
+  console.log(`[AUTH LOGIN] Step 1: Login request received for identifier: "${loginIdentifier}"`);
+
   try {
     if (!loginIdentifier || !password) {
+      console.warn('[AUTH LOGIN] Failed Step 1: Missing email/username or password in request body.');
       return res.status(400).json({ success: false, message: 'Please provide Email Address and Password.' });
     }
 
     // Find user by email OR username
+    console.log(`[AUTH LOGIN] Step 2: Querying database for user record...`);
     const user = await dbUsers.findOne({
       $or: [{ email: loginIdentifier }, { username: loginIdentifier }]
     });
 
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials. Please check your email and password.' });
+      console.warn(`[AUTH LOGIN] Failed Step 2: No account found matching "${loginIdentifier}".`);
+      return res.status(401).json({ success: false, message: 'Invalid credentials. Account not found with this email or username.' });
     }
+    console.log(`[AUTH LOGIN] Step 2 Success: Found user "${user.email}" (id: ${user._id || user.id}).`);
 
     // Check account lockout status
     if (user.lockUntil && new Date(user.lockUntil).getTime() > Date.now()) {
       const minutesLeft = Math.ceil((new Date(user.lockUntil).getTime() - Date.now()) / 60000);
+      console.warn(`[AUTH LOGIN] Locked: Account is locked for another ${minutesLeft} minutes.`);
       return res.status(429).json({
         success: false,
         message: `Account is temporarily locked due to multiple failed login attempts. Please try again in ${minutesLeft} minutes.`
       });
     }
 
+    console.log(`[AUTH LOGIN] Step 3: Verifying bcrypt password hash...`);
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      // Increment failed attempts
       const attempts = (user.loginAttempts || 0) + 1;
       let lockUntilDate = null;
       if (attempts >= 5) {
-        lockUntilDate = new Date(Date.now() + 15 * 60 * 1000); // Lockout 15 minutes
+        lockUntilDate = new Date(Date.now() + 15 * 60 * 1000);
       }
       if (user._id || user.id) {
         await dbUsers.updateById(user._id || user.id, {
@@ -187,6 +194,8 @@ router.post('/login', async (req: any, res: Response) => {
           lockUntil: lockUntilDate
         });
       }
+
+      console.warn(`[AUTH LOGIN] Failed Step 3: Incorrect password. Attempt ${attempts}/5.`);
 
       if (attempts >= 5) {
         return res.status(429).json({
@@ -200,12 +209,14 @@ router.post('/login', async (req: any, res: Response) => {
         message: `Incorrect password. ${5 - attempts} attempt(s) remaining before temporary lockout.`
       });
     }
+    console.log(`[AUTH LOGIN] Step 3 Success: Password hash matched.`);
 
     // Reset login attempts on successful login
     if (user._id || user.id) {
       await dbUsers.updateById(user._id || user.id, { loginAttempts: 0, lockUntil: null });
     }
 
+    console.log(`[AUTH LOGIN] Step 4: Signing JWT token...`);
     const token = generateToken(user._id || user.id);
 
     res.cookie('token', token, {
@@ -214,6 +225,7 @@ router.post('/login', async (req: any, res: Response) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
+    console.log(`[AUTH LOGIN] Step 5: Returning HTTP 200 JSON payload with token.`);
     res.json({
       success: true,
       message: 'Login successful',
@@ -221,7 +233,7 @@ router.post('/login', async (req: any, res: Response) => {
       user: formatUserPayload(user)
     });
   } catch (error: any) {
-    console.error('Login Error:', error);
+    console.error('[AUTH LOGIN] Server Error:', error);
     res.status(500).json({ success: false, message: error.message || 'Login failed due to server error' });
   }
 });
