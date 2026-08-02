@@ -26,6 +26,8 @@ const userSchema = new Schema(
     },
     resetOtp: { type: String, default: null },
     resetOtpExpires: { type: Date, default: null },
+    loginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date, default: null },
     medicalConditions: { type: [String], default: ['None'] },
     allergies: { type: [String], default: ['None'] },
     foodPreference: { type: String, enum: ['Veg', 'Non-Veg', 'Eggitarian', 'Vegan'], default: 'Veg' },

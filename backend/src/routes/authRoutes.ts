@@ -152,7 +152,7 @@ router.post('/login', async (req: any, res: Response) => {
 
   try {
     if (!loginIdentifier || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide email/username and password.' });
+      return res.status(400).json({ success: false, message: 'Please provide Email Address and Password.' });
     }
 
     // Find user by email OR username
@@ -161,12 +161,49 @@ router.post('/login', async (req: any, res: Response) => {
     });
 
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials. Account not found with this email or username.' });
+      return res.status(401).json({ success: false, message: 'Invalid credentials. Please check your email and password.' });
+    }
+
+    // Check account lockout status
+    if (user.lockUntil && new Date(user.lockUntil).getTime() > Date.now()) {
+      const minutesLeft = Math.ceil((new Date(user.lockUntil).getTime() - Date.now()) / 60000);
+      return res.status(429).json({
+        success: false,
+        message: `Account is temporarily locked due to multiple failed login attempts. Please try again in ${minutesLeft} minutes.`
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Incorrect password. Please try again.' });
+      // Increment failed attempts
+      const attempts = (user.loginAttempts || 0) + 1;
+      let lockUntilDate = null;
+      if (attempts >= 5) {
+        lockUntilDate = new Date(Date.now() + 15 * 60 * 1000); // Lockout 15 minutes
+      }
+      if (user._id || user.id) {
+        await dbUsers.updateById(user._id || user.id, {
+          loginAttempts: attempts >= 5 ? 0 : attempts,
+          lockUntil: lockUntilDate
+        });
+      }
+
+      if (attempts >= 5) {
+        return res.status(429).json({
+          success: false,
+          message: 'Account locked due to 5 consecutive failed login attempts. Please try again after 15 minutes.'
+        });
+      }
+
+      return res.status(401).json({
+        success: false,
+        message: `Incorrect password. ${5 - attempts} attempt(s) remaining before temporary lockout.`
+      });
+    }
+
+    // Reset login attempts on successful login
+    if (user._id || user.id) {
+      await dbUsers.updateById(user._id || user.id, { loginAttempts: 0, lockUntil: null });
     }
 
     const token = generateToken(user._id || user.id);
