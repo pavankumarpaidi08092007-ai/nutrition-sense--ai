@@ -509,7 +509,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                           value={loginEmail}
                           onChange={(e) => setLoginEmail(e.target.value)}
                           placeholder="name@domain.com"
-                          className="w-full text-xs sm:text-sm pl-10 pr-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium"
+                          className="w-full text-xs sm:text-sm pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium"
                         />
                       </div>
                     </div>
@@ -530,7 +530,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                           onKeyDown={handleKeyDownLogin}
                           onChange={(e) => setLoginPassword(e.target.value)}
                           placeholder="••••••••"
-                          className="w-full text-xs sm:text-sm pl-10 pr-10 py-2.5 rounded-xl border border-slate-250 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium"
+                          className="w-full text-xs sm:text-sm pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium"
                         />
                         <button
                           type="button"
@@ -570,7 +570,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                       type="button"
                       onClick={() => setIsGoogleModalOpen(true)}
                       disabled={googleLoading}
-                      className="w-full py-2.5 px-4 rounded-xl border border-slate-250 dark:border-slate-700 bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2.5"
+                      className="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2.5"
                     >
                       {googleLoading ? (
                         <div className="w-4 h-4 rounded-full border-2 border-slate-400 border-t-emerald-500 animate-spin" />
@@ -664,7 +664,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                           className={`w-full text-xs sm:text-sm pl-10 pr-8 py-2.5 rounded-xl border bg-white/90 dark:bg-slate-900/90 focus:outline-none transition-all font-medium ${
                             touched.name && nameError
                               ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
-                              : 'border-slate-250 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                              : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
                           }`}
                         />
                         {regFullName && (
@@ -703,7 +703,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                           className={`w-full text-xs sm:text-sm pl-10 pr-8 py-2.5 rounded-xl border bg-white/90 dark:bg-slate-900/90 focus:outline-none transition-all font-medium ${
                             touched.email && emailError
                               ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
-                              : 'border-slate-250 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                              : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
                           }`}
                         />
                         {regEmail && (
@@ -743,7 +743,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                           className={`w-full text-xs sm:text-sm pl-10 pr-10 py-2.5 rounded-xl border bg-white/90 dark:bg-slate-900/90 focus:outline-none transition-all font-medium ${
                             touched.password && passwordError
                               ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
-                              : 'border-slate-250 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                              : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
                           }`}
                         />
                         <button
@@ -824,7 +824,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                           className={`w-full text-xs sm:text-sm pl-10 pr-10 py-2.5 rounded-xl border bg-white/90 dark:bg-slate-900/90 focus:outline-none transition-all font-medium ${
                             touched.confirmPassword && confirmPasswordError
                               ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
-                              : 'border-slate-250 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                              : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
                           }`}
                         />
                         <button
@@ -862,7 +862,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                       type="button"
                       onClick={() => setIsGoogleModalOpen(true)}
                       disabled={googleLoading}
-                      className="w-full py-2.5 px-4 rounded-xl border border-slate-250 dark:border-slate-700 bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2.5"
+                      className="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2.5"
                     >
                       {googleLoading ? (
                         <div className="w-4 h-4 rounded-full border-2 border-slate-400 border-t-emerald-500 animate-spin" />
@@ -993,7 +993,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
                       placeholder="user@example.com"
-                      className="w-full text-xs p-3 rounded-xl border border-slate-250 dark:border-slate-700 bg-white/80 dark:bg-slate-900 focus:outline-none focus:border-emerald-500"
+                      className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <button
@@ -1026,7 +1026,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                       value={forgotOtp}
                       onChange={(e) => setForgotOtp(e.target.value)}
                       placeholder="123456"
-                      className="w-full text-lg tracking-widest text-center p-3 rounded-xl border border-slate-250 dark:border-slate-700 bg-white/80 dark:bg-slate-900 font-black focus:outline-none focus:border-emerald-500"
+                      className="w-full text-lg tracking-widest text-center p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900 font-black focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <button
@@ -1050,7 +1050,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Minimum 8 characters"
-                      className="w-full text-xs p-3 rounded-xl border border-slate-250 dark:border-slate-700 bg-white/80 dark:bg-slate-900 focus:outline-none"
+                      className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -1061,7 +1061,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultTab = 'login' }) => {
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                       placeholder="Re-enter new password"
-                      className="w-full text-xs p-3 rounded-xl border border-slate-250 dark:border-slate-700 bg-white/80 dark:bg-slate-900 focus:outline-none"
+                      className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900 focus:outline-none"
                     />
                   </div>
                   <button
